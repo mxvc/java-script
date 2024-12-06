@@ -3,6 +3,7 @@ package qqmusic;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.RuntimeUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,20 +69,12 @@ public class OggToMp3 {
         String command = ffmpegPath + " -i \"" + inputVideoPath + "\" \"" + outputVideoPath.getAbsolutePath() + "\"";
 
         System.out.println(command);
-        // 执行FFmpeg命令
-        ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-        try {
-            Process process = processBuilder.start();
-            // 等待FFmpeg命令执行完成
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                System.out.println("视频转换成功");
-            } else {
-                System.out.println("视频转换失败");
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+
+
+        String str = RuntimeUtil.execForStr(command);
+
+        System.out.println(str);
+
 
         return outputVideoPath;
     }
