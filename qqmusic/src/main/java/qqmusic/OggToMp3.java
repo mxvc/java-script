@@ -1,58 +1,70 @@
 package qqmusic;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RuntimeUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 将ogg文件转换为mp3并拷贝都指定目录
  */
+@Slf4j
 public class OggToMp3 {
 
     public static final String SOURCE_DIR = "C:\\Users\\zt\\Music\\QQMusic";
     public static final String TARGET_DIR = "E:\\";
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         File[] files = new File(SOURCE_DIR).listFiles();
         Assert.notNull(files,"没有文件");
 
 
-        for (int i = 0; i < files.length; i++) {
-            System.out.println();
-            System.out.printf("%s 第%s个，共%s个 \n", DateUtil.now(), i + 1, files.length) ;
-            File file = files[i];
-            System.out.println("处理文件" + file);
+        int length = files.length;
 
-            File targetFile = new File(TARGET_DIR, file.getName());
-            if(targetFile.exists()){
-                System.out.println("已存在，忽略");
-                continue;
-            }
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
+        for (int i = 0; i < length; i++) {
 
-            if (file.getName().endsWith(".lrc")) {
-                move(file);
-                continue;
-            }
-            if (file.getName().endsWith(".mp3")) {
-                move(file);
-                continue;
-            }
-            if (file.getName().endsWith(".ogg")) {
-                File targetMp3 = new File(TARGET_DIR, FileUtil.mainName(file) + ".mp3");
-                if(FileUtil.exist(targetMp3)){
-                    System.out.println("已存在mp3，忽略");
-                    continue;
-                }
+            int index = i;
+            executorService.submit(() -> process(index, length, files));
+        }
+        // 等待结束
+        executorService.awaitTermination(1, TimeUnit.DAYS);
+    }
 
-                File newFile = convert(file);
-                move(newFile);
-            }
+    private static void process(int i, int length, File[] files) {
+        log.info("----------------");
+        log.info("{}/{}",   i + 1, length); ;
+        File file = files[i];
+        log.info("处理文件 {}" , file);
+
+        File targetFile = new File(TARGET_DIR, file.getName());
+        if(targetFile.exists()){
+            log.warn("已存在，忽略");
+            return;
         }
 
+        if (file.getName().endsWith(".lrc")) {
+            move(file);
+            return;
+        }
+        if (file.getName().endsWith(".mp3")) {
+            move(file);
+            return;
+        }
+        if (file.getName().endsWith(".ogg")) {
+            File targetMp3 = new File(TARGET_DIR, FileUtil.mainName(file) + ".mp3");
+            if(FileUtil.exist(targetMp3)){
+                log.warn("已存在mp3，忽略");
+                return;
+            }
 
+            File newFile = convert(file);
+            move(newFile);
+        }
     }
 
     private static File convert(File file){
