@@ -1,12 +1,11 @@
 package qqmusic;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.StandardCopyOption;
 
 /**
  * 将ogg文件转换为mp3并拷贝都指定目录
@@ -22,20 +21,33 @@ public class OggToMp3 {
 
         for (int i = 0; i < files.length; i++) {
             System.out.println();
-            System.out.printf("第%s个，共%s个。 \n", i+1, files.length) ;
+            System.out.printf("%s 第%s个，共%s个 \n", DateUtil.now(), i + 1, files.length) ;
             File file = files[i];
             System.out.println("处理文件" + file);
+
+            File targetFile = new File(TARGET_DIR, file.getName());
+            if(targetFile.exists()){
+                System.out.println("已存在，忽略");
+                continue;
+            }
+
             if (file.getName().endsWith(".lrc")) {
-                copy(file);
+                move(file);
                 continue;
             }
             if (file.getName().endsWith(".mp3")) {
-                copy(file);
+                move(file);
                 continue;
             }
             if (file.getName().endsWith(".ogg")) {
+                File targetMp3 = new File(TARGET_DIR, FileUtil.mainName(file) + ".mp3");
+                if(FileUtil.exist(targetMp3)){
+                    System.out.println("已存在mp3，忽略");
+                    continue;
+                }
+
                 File newFile = convert(file);
-                copy(newFile);
+                move(newFile);
             }
         }
 
@@ -74,7 +86,7 @@ public class OggToMp3 {
         return outputVideoPath;
     }
 
-    private static void copy(File file){
-        FileUtil.copy(file, new File(TARGET_DIR), true);
+    private static void move(File file){
+        FileUtil.move(file, new File(TARGET_DIR), true);
     }
 }
