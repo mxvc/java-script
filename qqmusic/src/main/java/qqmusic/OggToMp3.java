@@ -16,8 +16,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class OggToMp3 {
 
+    public static final boolean DELETE_SOURCE_FILE = true;
     public static final String SOURCE_DIR = "C:\\Users\\zt\\Music\\QQMusic";
     public static final String TARGET_DIR = "E:\\";
+
     public static void main(String[] args) throws InterruptedException {
         File[] files = new File(SOURCE_DIR).listFiles();
         Assert.notNull(files,"没有文件");
@@ -29,21 +31,23 @@ public class OggToMp3 {
         for (int i = 0; i < length; i++) {
 
             int index = i;
-            executorService.submit(() -> process(index, length, files));
+            File file = files[i];
+            executorService.submit(() -> process(index, length, file));
         }
         // 等待结束
         executorService.awaitTermination(1, TimeUnit.DAYS);
     }
 
-    private static void process(int i, int length, File[] files) {
+    private static void process(int i, int length, File file) {
         log.info("----------------");
         log.info("{}/{}",   i + 1, length); ;
-        File file = files[i];
         log.info("处理文件 {}" , file);
 
         File targetFile = new File(TARGET_DIR, file.getName());
         if(targetFile.exists()){
             log.warn("已存在，忽略");
+            delete(file);
+
             return;
         }
 
@@ -59,11 +63,13 @@ public class OggToMp3 {
             File targetMp3 = new File(TARGET_DIR, FileUtil.mainName(file) + ".mp3");
             if(FileUtil.exist(targetMp3)){
                 log.warn("已存在mp3，忽略");
+                delete(file);
                 return;
             }
 
             File newFile = convert(file);
             move(newFile);
+            delete(file);
         }
     }
 
@@ -93,5 +99,11 @@ public class OggToMp3 {
 
     private static void move(File file){
         FileUtil.move(file, new File(TARGET_DIR), true);
+    }
+    private static void delete(File file){
+        if(DELETE_SOURCE_FILE){
+            log.info("删除文件 {}",file);
+            FileUtil.del(file);
+        }
     }
 }
