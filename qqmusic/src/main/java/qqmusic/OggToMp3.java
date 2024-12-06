@@ -103,7 +103,8 @@ public class OggToMp3 {
     private static void delete(File file){
         if(DELETE_SOURCE_FILE){
             log.info("删除文件 {}",file);
-            FileUtil.del(file);
+            boolean del = FileUtil.del(file);
+            log.info("删除结果{}",del);
         }
     }
 }
