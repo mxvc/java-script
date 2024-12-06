@@ -19,18 +19,22 @@ public class OggToMp3 {
         File[] files = new File(SOURCE_DIR).listFiles();
         Assert.notNull(files,"没有文件");
 
-        for (File file : files) {
+
+        for (int i = 0; i < files.length; i++) {
+            System.out.println();
+            System.out.printf("第%s个，共%s个。 \n", i+1, files.length) ;
+            File file = files[i];
             System.out.println("处理文件" + file);
-            if(file.getName().endsWith(".lrc")){
+            if (file.getName().endsWith(".lrc")) {
                 copy(file);
                 continue;
             }
-            if(file.getName().endsWith(".mp3")){
+            if (file.getName().endsWith(".mp3")) {
                 copy(file);
                 continue;
             }
-            if(file.getName().endsWith(".ogg")){
-              File newFile =   convert(file);
+            if (file.getName().endsWith(".ogg")) {
+                File newFile = convert(file);
                 copy(newFile);
             }
         }
