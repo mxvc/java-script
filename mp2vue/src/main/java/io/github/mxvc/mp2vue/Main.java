@@ -2,6 +2,7 @@ package io.github.mxvc.mp2vue;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,6 +11,8 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -51,16 +54,37 @@ public class Main {
             if(element.hasAttr("is")){ // is 有些@符号会报错
                 element.removeAttr("is");
             }
-
         }
 
 
-        replaceTargetTemplate(body.firstElementChild());
+
+
+        // 处理css
+
+        Elements styles = doc.select("style[wxss:path]");
+        List<Element> styleList = styles.stream().filter(s -> {
+            String path = s.attr("wxss:path");
+            if (path.contains("@")) {
+                return false;
+            }
+            if(StrUtil.containsAny(path, "unknown","./app.wxss", "npm", "tab-bar")){
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+
+        Assert.state(styleList.size() == 1, "没有找到真正的样式");
+
+
+        Element style = styleList.get(0);
+
+
+        replaceTarget(body.firstElementChild(), style);
 
     }
 
 
-    private static void replaceTargetTemplate(Element view) {
+    private static void replaceTarget(Element template, Element style) {
         String vue = FileUtil.readUtf8String(TARGET);
 
         vue = "<root>" + vue + "</root>";
@@ -69,7 +93,10 @@ public class Main {
 
         Element t = root.selectFirst("template");
         t.empty();
-        t.appendChild(view);
+        t.appendChild(template);
+
+        root.select("style").remove();
+        root.appendChild(style);
 
 
         String result = root.html();
