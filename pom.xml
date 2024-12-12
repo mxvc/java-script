@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>qqmusic</module>
+        <module>mp2vue</module>
     </modules>
 
     <parent>
