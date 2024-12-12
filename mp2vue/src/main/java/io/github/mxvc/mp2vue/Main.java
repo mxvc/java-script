@@ -67,11 +67,8 @@ public class Main {
             if (path.contains("@")) {
                 return false;
             }
-            if(StrUtil.containsAny(path, "unknown","./app.wxss", "npm", "tab-bar")){
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
+            return !StrUtil.containsAny(path, "unknown", "./app.wxss", "npm", "tab-bar");
+        }).toList();
 
         Assert.state(styleList.size() == 1, "没有找到真正的样式");
 
