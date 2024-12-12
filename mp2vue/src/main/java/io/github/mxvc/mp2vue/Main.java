@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    public static final String TARGET = "D:\\ws\\yunying-sichuan-app\\pages\\points\\mall\\mall.vue";
+    public static final String TARGET = "D:\\ws\\yunying-sichuan-app\\pages\\points\\mall\\detail.vue";
 
 
     public static void main(String[] args) throws IOException {
@@ -79,12 +79,13 @@ public class Main {
         Element style = styleList.get(0);
 
 
-        replaceTarget(body.firstElementChild(), style);
+        replaceTarget(body, style);
 
     }
 
 
-    private static void replaceTarget(Element template, Element style) {
+    private static void replaceTarget(Element body, Element style) {
+        body.tagName("view");
         String vue = FileUtil.readUtf8String(TARGET);
 
         vue = "<root>" + vue + "</root>";
@@ -93,7 +94,7 @@ public class Main {
 
         Element t = root.selectFirst("template");
         t.empty();
-        t.appendChild(template);
+        t.appendChild(body);
 
         root.select("style").remove();
         root.appendChild(style);
